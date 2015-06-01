@@ -1,5 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.android.databinding'
+apply plugin: 'com.github.dcendents.android-maven'
 
 android {
     compileSdkVersion 22
@@ -26,4 +27,23 @@ android {
 dependencies {
     compile 'com.android.support:support-v4:22.2.0'
     compile 'com.android.support:recyclerview-v7:22.0.0'
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            def repoUrl
+            if (project.version.endsWith("SNAPSHOT")) {
+                repoUrl = project.getProperty('localMavenSnapshotUrl')
+            } else {
+                repoUrl = project.getProperty('localMavenUrl')
+            }
+
+            repository(url: repoUrl) {
+                authentication(
+                        userName: project.getProperty('localMavenUser'),
+                        password: project.getProperty('localMavenPassword'))
+            }
+        }
+    }
 }
