@@ -23,15 +23,8 @@ import java.util.Collection;
  */
 public class BindingListViewAdapter<T> extends BaseAdapter {
     /**
-     * Pass this constant to {@link ItemView#set(String, int)} to set an item id for the given
-     * item.
-     *
-     * @see #getItemId(int)
-     */
-    public static final String ITEM_ID = "item_id";
-    /**
-     * Pass this constant to {@link ItemView#set(String, int)} to set a drop down layout res for the
-     * given item.
+     * Pass this constant to {@link ItemView#setLayoutRes(String, int)} to set a drop down layout
+     * res for the given item.
      *
      * @see #getDropDownView(int, View, ViewGroup)
      */
@@ -46,6 +39,7 @@ public class BindingListViewAdapter<T> extends BaseAdapter {
     private int[] layouts;
     private int[] dropDownLayouts;
     private LayoutInflater inflater;
+    private ItemIds<T> itemIds;
 
     /**
      * Constructs a new instance with the given {@link ItemView}.
@@ -91,6 +85,13 @@ public class BindingListViewAdapter<T> extends BaseAdapter {
         }
     }
 
+    /**
+     * Set the item id's for the items.
+     */
+    public void setItemIds(@Nullable ItemIds<T> itemIds) {
+        this.itemIds = itemIds;
+    }
+
     public ObservableList<T> getItems() {
         return items;
     }
@@ -107,8 +108,7 @@ public class BindingListViewAdapter<T> extends BaseAdapter {
 
     @Override
     public long getItemId(int position) {
-        selector.select(itemView, position, items.get(position));
-        return itemView.getInt(ITEM_ID);
+        return itemIds == null ? position : itemIds.getItemId(position, items.get(position));
     }
 
     @Override
@@ -141,20 +141,23 @@ public class BindingListViewAdapter<T> extends BaseAdapter {
         }
 
         int viewType = getItemViewType(position);
-
-        ViewDataBinding binding;
-        if (convertView == null) {
-            int layoutRes = dropDownLayouts[viewType];
-            binding = DataBindingUtil.inflate(inflater, layoutRes, parent, false);
-            binding.getRoot().setTag(binding);
+        int layoutRes = dropDownLayouts[viewType];
+        if (layoutRes == 0) {
+            return super.getDropDownView(position, convertView, parent);
         } else {
-            binding = (ViewDataBinding) convertView.getTag();
+            ViewDataBinding binding;
+            if (convertView == null) {
+                binding = DataBindingUtil.inflate(inflater, layoutRes, parent, false);
+                binding.getRoot().setTag(binding);
+            } else {
+                binding = (ViewDataBinding) convertView.getTag();
+            }
+
+            T item = items.get(position);
+            binding.setVariable(itemView.getBindingVariable(), item);
+
+            return binding.getRoot();
         }
-
-        T item = items.get(position);
-        binding.setVariable(itemView.getBindingVariable(), item);
-
-        return binding.getRoot();
     }
 
     @Override
@@ -170,8 +173,13 @@ public class BindingListViewAdapter<T> extends BaseAdapter {
             }
         }
         layouts[firstEmpty] = itemView.layoutRes;
-        dropDownLayouts[firstEmpty] = itemView.getInt(DROP_DOWN_LAYOUT);
+        dropDownLayouts[firstEmpty] = itemView.getLayoutRes(DROP_DOWN_LAYOUT);
         return firstEmpty;
+    }
+
+    @Override
+    public boolean hasStableIds() {
+        return itemIds != null;
     }
 
     @Override
@@ -182,9 +190,8 @@ public class BindingListViewAdapter<T> extends BaseAdapter {
         return count;
     }
 
-    private static class WeakReferenceOnListChangedCallback<T> extends ObservableList.OnListChangedCallback<ObservableList<T>> {
+    private static class WeakReferenceOnListChangedCallback<T> extends BaseOnListChangedCallback<T> {
         final WeakReference<BaseAdapter> adapterRef;
-        final Handler handler = new Handler(Looper.getMainLooper());
 
         WeakReferenceOnListChangedCallback(BaseAdapter adapter) {
             this.adapterRef = new WeakReference<>(adapter);
@@ -192,9 +199,9 @@ public class BindingListViewAdapter<T> extends BaseAdapter {
 
         @Override
         public void onChanged(ObservableList sender) {
-            handler.post(new Runnable() {
+            onMainThread(new OnMainThread() {
                 @Override
-                public void run() {
+                public void onMainThread() {
                     BaseAdapter adapter = adapterRef.get();
                     if (adapter != null) {
                         adapter.notifyDataSetChanged();
@@ -222,5 +229,9 @@ public class BindingListViewAdapter<T> extends BaseAdapter {
         public void onItemRangeRemoved(ObservableList sender, int positionStart, int itemCount) {
             onChanged(sender);
         }
+    }
+
+    public interface ItemIds<T> {
+        long getItemId(int position, T item);
     }
 }
