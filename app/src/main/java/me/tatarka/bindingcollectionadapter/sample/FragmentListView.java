@@ -13,6 +13,7 @@ import me.tatarka.bindingcollectionadapter.sample.databinding.ListViewBinding;
  * Created by evan on 5/31/15.
  */
 public class FragmentListView extends Fragment {
+    private static final String TAG = "BindingList";
     private static final ViewModel viewModel = new ViewModel();
 
     @Nullable

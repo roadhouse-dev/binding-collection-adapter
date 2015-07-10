@@ -9,17 +9,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.List;
-
-import me.tatarka.bindingcollectionadapter.sample.databinding.RecyclerViewBinding;
 import me.tatarka.bindingcollectionadapter.sample.databinding.ViewpagerViewBinding;
 
 /**
  * Created by evan on 5/31/15.
  */
 public class FragmentViewPagerView extends Fragment {
+    private static final String TAG = "BindingViewPager";
     private static final ViewModel viewModel = new ViewModel();
-    
+
     private ViewpagerViewBinding binding;
 
     @Nullable
@@ -34,10 +32,9 @@ public class FragmentViewPagerView extends Fragment {
         binding.tabs.setTabsFromPagerAdapter(adapter);
         binding.tabs.setOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(binding.pager));
         binding.pager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(binding.tabs));
-        
         return binding.getRoot();
     }
-    
+
     private class PagerListeners extends Listeners {
         public PagerListeners(ViewModel viewModel) {
             super(viewModel);

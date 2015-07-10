@@ -7,13 +7,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import me.tatarka.bindingcollectionadapter.sample.databinding.ListViewBinding;
 import me.tatarka.bindingcollectionadapter.sample.databinding.RecyclerViewBinding;
 
 /**
  * Created by evan on 5/31/15.
  */
 public class FragmentRecyclerView extends Fragment {
+    private static final String TAG = "BindingRecyclerView";
     private static final ViewModel viewModel = new ViewModel();
 
     @Nullable
