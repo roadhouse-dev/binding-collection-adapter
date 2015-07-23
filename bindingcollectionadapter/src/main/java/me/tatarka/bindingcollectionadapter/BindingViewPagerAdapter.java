@@ -23,13 +23,16 @@ import java.util.List;
  * changes to that list.
  */
 public class BindingViewPagerAdapter<T> extends PagerAdapter implements BindingCollectionAdapter<T> {
+
     @NonNull
     private final ItemView itemView;
     @NonNull
     private final ItemViewSelector<T> selector;
     private final WeakReferenceOnListChangedCallback<T> callback = new WeakReferenceOnListChangedCallback<>(this);
-    // This is what the viewpager sees. It will only be modified on the main thread.
-    private final List<T> boundItems = new ArrayList<>();
+    /**
+     * The items bound to the viewpager. It will only be modified from the main thread.
+     */
+    protected final List<T> boundItems = new ArrayList<>();
     private ObservableList<T> items;
     private LayoutInflater inflater;
     private PageTitles<T> pageTitles;
@@ -153,6 +156,7 @@ public class BindingViewPagerAdapter<T> extends PagerAdapter implements BindingC
     }
 
     private static class WeakReferenceOnListChangedCallback<T> extends BaseOnListChangedCallback<T> {
+
         final WeakReference<BindingViewPagerAdapter<T>> adapterRef;
 
         WeakReferenceOnListChangedCallback(BindingViewPagerAdapter<T> adapter) {
@@ -201,6 +205,7 @@ public class BindingViewPagerAdapter<T> extends PagerAdapter implements BindingC
     }
 
     public interface PageTitles<T> {
+
         CharSequence getPageTitle(int position, T item);
     }
 }

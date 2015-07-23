@@ -23,6 +23,7 @@ import java.util.List;
  * changes to that list.
  */
 public class BindingListViewAdapter<T> extends BaseAdapter implements BindingCollectionAdapter<T> {
+
     /**
      * Pass this constant to {@link ItemView#setLayoutRes(String, int)} to set a drop down layout
      * res for the given item.
@@ -36,8 +37,10 @@ public class BindingListViewAdapter<T> extends BaseAdapter implements BindingCol
     @NonNull
     private final ItemViewSelector<T> selector;
     private final WeakReferenceOnListChangedCallback<T> callback = new WeakReferenceOnListChangedCallback<>(this);
-    // This is what the listview sees. It will only be modified on the main thread.
-    private final List<T> boundItems = new ArrayList<>();
+    /**
+     * The items bound to the listview. It will only be modified from the main thread.
+     */
+    protected final List<T> boundItems = new ArrayList<>();
     private ObservableList<T> items;
     private int[] layouts;
     private int[] dropDownLayouts;
@@ -209,6 +212,7 @@ public class BindingListViewAdapter<T> extends BaseAdapter implements BindingCol
     }
 
     private static class WeakReferenceOnListChangedCallback<T> extends BaseOnListChangedCallback<T> {
+
         final WeakReference<BindingListViewAdapter<T>> adapterRef;
 
         WeakReferenceOnListChangedCallback(BindingListViewAdapter<T> adapter) {
@@ -257,6 +261,7 @@ public class BindingListViewAdapter<T> extends BaseAdapter implements BindingCol
     }
 
     public interface ItemIds<T> {
+
         long getItemId(int position, T item);
     }
 }

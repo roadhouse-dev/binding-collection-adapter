@@ -22,13 +22,16 @@ import java.util.List;
  * based on changes to that list.
  */
 public class BindingRecyclerViewAdapter<T> extends RecyclerView.Adapter<BindingRecyclerViewAdapter.ViewHolder> implements BindingCollectionAdapter<T> {
+
     @NonNull
     private final ItemView itemView;
     @NonNull
     private final ItemViewSelector<T> selector;
     private final WeakReferenceOnListChangedCallback<T> callback = new WeakReferenceOnListChangedCallback<>(this);
-    // This is what the recyclerview sees. It will only be modified on the main thread.
-    private final List<T> boundItems = new ArrayList<>();
+    /**
+     * The items bound to the recyclerview. It will only be modified from the main thread.
+     */
+    protected final List<T> boundItems = new ArrayList<>();
     private ObservableList<T> items;
     private LayoutInflater inflater;
 
@@ -130,6 +133,7 @@ public class BindingRecyclerViewAdapter<T> extends RecyclerView.Adapter<BindingR
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
+
         final ViewDataBinding binding;
 
         ViewHolder(ViewDataBinding binding) {
@@ -139,6 +143,7 @@ public class BindingRecyclerViewAdapter<T> extends RecyclerView.Adapter<BindingR
     }
 
     private static class WeakReferenceOnListChangedCallback<T> extends BaseOnListChangedCallback<T> {
+
         final WeakReference<BindingRecyclerViewAdapter<T>> adapterRef;
 
         WeakReferenceOnListChangedCallback(BindingRecyclerViewAdapter<T> adapter) {
