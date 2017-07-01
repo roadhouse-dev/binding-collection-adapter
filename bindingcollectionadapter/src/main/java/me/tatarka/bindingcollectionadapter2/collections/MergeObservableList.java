@@ -17,9 +17,12 @@ import java.util.List;
  * where you have multiple data sources, or a handful of fixed items mixed in with lists of data.
  */
 public class MergeObservableList<T> extends AbstractList<T> implements ObservableList<T> {
-    private final ArrayList<List<? extends T>> lists = new ArrayList<>();
-    private final ListChangeCallback callback = new ListChangeCallback();
-    private final ListChangeRegistry listeners = new ListChangeRegistry();
+
+    final ArrayList<List<? extends T>> lists = new ArrayList<>();
+    final ListChangeCallback callback = new ListChangeCallback();
+    final ListChangeRegistry listeners = new ListChangeRegistry();
+
+    Source<T> source;
 
     @Override
     public void addOnListChangedCallback(OnListChangedCallback<? extends ObservableList<T>> listener) {
@@ -33,88 +36,57 @@ public class MergeObservableList<T> extends AbstractList<T> implements Observabl
 
     /**
      * Inserts the given item into the merge list.
+     *
+     * @deprecated Use {@link Source#insertItem(Object)} instead.
      */
+    @Deprecated
     public MergeObservableList<T> insertItem(T object) {
-        lists.add(Collections.singletonList(object));
-        modCount += 1;
-        listeners.notifyInserted(this, size() - 1, 1);
+        source().insertItem(object);
         return this;
     }
 
     /**
      * Inserts the given {@link ObservableList} into the merge list. Any changes in the given list
      * will be reflected and propagated here.
+     *
+     * @deprecated Use {@link Source#insertList(ObservableList)} instead.
      */
-    @SuppressWarnings("unchecked")
+    @Deprecated
     public MergeObservableList<T> insertList(@NonNull ObservableList<? extends T> list) {
-        list.addOnListChangedCallback(callback);
-        int oldSize = size();
-        lists.add(list);
-        modCount += 1;
-        if (!list.isEmpty()) {
-            listeners.notifyInserted(this, oldSize, list.size());
-        }
+        source().insertList(list);
         return this;
     }
 
     /**
      * Removes the given item from the merge list.
+     *
+     * @deprecated Use {@link Source#removeItem(Object)} instead.
      */
+    @Deprecated
     public boolean removeItem(T object) {
-        int size = 0;
-        for (int i = 0, listsSize = lists.size(); i < listsSize; i++) {
-            List<? extends T> list = lists.get(i);
-            if (!(list instanceof ObservableList)) {
-                Object item = list.get(0);
-                if ((object == null) ? (item == null) : object.equals(item)) {
-                    lists.remove(i);
-                    modCount += 1;
-                    listeners.notifyRemoved(this, size, 1);
-                    return true;
-                }
-            }
-            size += list.size();
-        }
+        source().removeItem(object);
         return false;
     }
 
     /**
      * Removes the given {@link ObservableList} from the merge list.
+     *
+     * @deprecated Use {@link Source#removeList(ObservableList)} instead.
      */
-    @SuppressWarnings("unchecked")
+    @Deprecated
     public boolean removeList(ObservableList<? extends T> listToRemove) {
-        int size = 0;
-        for (int i = 0, listsSize = lists.size(); i < listsSize; i++) {
-            List<? extends T> list = lists.get(i);
-            if (list == listToRemove) {
-                listToRemove.removeOnListChangedCallback(callback);
-                lists.remove(i);
-                modCount += 1;
-                listeners.notifyRemoved(this, size, list.size());
-                return true;
-            }
-            size += list.size();
-        }
+        source().removeList(listToRemove);
         return false;
     }
 
     /**
      * Removes all items and lists from the merge list.
+     *
+     * @deprecated Use {@link Source#removeAll()} instead.
      */
+    @Deprecated
     public void removeAll() {
-        int size = size();
-        if (size == 0) {
-            return;
-        }
-        for (int i = 0, listSize = lists.size(); i < listSize; i++) {
-            List<? extends T> list = lists.get(i);
-            if (list instanceof ObservableList) {
-                ((ObservableList) list).removeOnListChangedCallback(callback);
-            }
-        }
-        lists.clear();
-        modCount += 1;
-        listeners.notifyRemoved(this, 0, size);
+        source().removeAll();
     }
 
     /**
@@ -193,6 +165,13 @@ public class MergeObservableList<T> extends AbstractList<T> implements Observabl
         return size;
     }
 
+    private Source<T> source() {
+        if (source == null) {
+            new Source<>(this);
+        }
+        return source;
+    }
+
     class ListChangeCallback extends OnListChangedCallback {
 
         @Override
@@ -253,6 +232,106 @@ public class MergeObservableList<T> extends AbstractList<T> implements Observabl
                 }
                 size += list.size();
             }
+        }
+    }
+
+    public static class Source<T> {
+        private MergeObservableList<T> mergeList;
+
+        public Source() {
+            this(new MergeObservableList<T>());
+        }
+
+        Source(MergeObservableList<T> list) {
+            mergeList = list;
+            mergeList.source = this;
+        }
+
+        /**
+         * Inserts the given item into the merge list.
+         */
+        public Source<T> insertItem(T object) {
+            mergeList.lists.add(Collections.singletonList(object));
+            mergeList.modCount += 1;
+            mergeList.listeners.notifyInserted(mergeList, mergeList.size() - 1, 1);
+            return this;
+        }
+
+        /**
+         * Inserts the given {@link ObservableList} into the merge list. Any changes in the given list
+         * will be reflected and propagated here.
+         */
+        @SuppressWarnings("unchecked")
+        public Source<T> insertList(@NonNull ObservableList<? extends T> list) {
+            list.addOnListChangedCallback(mergeList.callback);
+            int oldSize = mergeList.size();
+            mergeList.lists.add(list);
+            mergeList.modCount += 1;
+            if (!list.isEmpty()) {
+                mergeList.listeners.notifyInserted(mergeList, oldSize, list.size());
+            }
+            return this;
+        }
+
+        /**
+         * Removes the given item from the merge list.
+         */
+        public boolean removeItem(T object) {
+            int size = 0;
+            for (int i = 0, listsSize = mergeList.lists.size(); i < listsSize; i++) {
+                List<? extends T> list = mergeList.lists.get(i);
+                if (!(list instanceof ObservableList)) {
+                    Object item = list.get(0);
+                    if ((object == null) ? (item == null) : object.equals(item)) {
+                        mergeList.lists.remove(i);
+                        mergeList.modCount += 1;
+                        mergeList.listeners.notifyRemoved(mergeList, size, 1);
+                        return true;
+                    }
+                }
+                size += list.size();
+            }
+            return false;
+        }
+
+        /**
+         * Removes the given {@link ObservableList} from the merge list.
+         */
+        @SuppressWarnings("unchecked")
+        public boolean removeList(ObservableList<? extends T> listToRemove) {
+            int size = 0;
+            for (int i = 0, listsSize = mergeList.lists.size(); i < listsSize; i++) {
+                List<? extends T> list = mergeList.lists.get(i);
+                if (list == listToRemove) {
+                    listToRemove.removeOnListChangedCallback(mergeList.callback);
+                    mergeList.lists.remove(i);
+                    mergeList.modCount += 1;
+                    mergeList.listeners.notifyRemoved(mergeList, size, list.size());
+                    return true;
+                }
+                size += list.size();
+            }
+            return false;
+        }
+
+        /**
+         * Removes all items and lists from the merge list.
+         */
+        public void removeAll() {
+            int size = mergeList.size();
+            for (int i = 0, listSize = mergeList.lists.size(); i < listSize; i++) {
+                List<? extends T> list = mergeList.lists.get(i);
+                if (list instanceof ObservableList) {
+                    ((ObservableList) list).removeOnListChangedCallback(mergeList.callback);
+                }
+            }
+            mergeList.lists.clear();
+            mergeList.modCount += 1;
+            mergeList.listeners.notifyRemoved(mergeList, 0, size);
+        }
+
+        public ObservableList<T> list() {
+            return mergeList;
         }
     }
 }

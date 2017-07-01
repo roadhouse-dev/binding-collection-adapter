@@ -280,10 +280,11 @@ manage these lists yourself since you have to take into account all items when u
 
 ```java
 ObservableList<String> data = new ObservableArrayList<>();
-MergeObservableList<String> list = new MergeObservableList<>()
+ObservableList<String> list = new MergeObservableList.Source<>()
   .insertItem("Header")
   .insertList(data)
-  .insertItem("Footer");
+  .insertItem("Footer")
+  .list();
 
 data.addAll(Arrays.asList("One", "Two"));
 // list => ["Header", "One", "Two", "Footer"]

@@ -32,10 +32,11 @@ public class MergeObservableTest {
 
     @Test
     public void insertingItemContainsThatItem() {
-        MergeObservableList<String> list = new MergeObservableList<>();
+        MergeObservableList.Source<String> source = new MergeObservableList.Source<>();
+        ObservableList<String> list = source.list();
         ObservableList.OnListChangedCallback callback = mock(ObservableList.OnListChangedCallback.class);
         list.addOnListChangedCallback(callback);
-        list.insertItem("test");
+        source.insertItem("test");
 
         assertThat(list)
                 .hasSize(1)
@@ -45,13 +46,14 @@ public class MergeObservableTest {
 
     @Test
     public void insertingListContainsThatList() {
-        MergeObservableList<String> list = new MergeObservableList<>();
+        MergeObservableList.Source<String> source = new MergeObservableList.Source<>();
+        ObservableList<String> list = source.list();
         ObservableList.OnListChangedCallback callback = mock(ObservableList.OnListChangedCallback.class);
         list.addOnListChangedCallback(callback);
         ObservableList<String> items = new ObservableArrayList<>();
         items.add("test1");
         items.add("test2");
-        list.insertList(items);
+        source.insertList(items);
 
         assertThat(list)
                 .hasSize(2)
@@ -61,14 +63,15 @@ public class MergeObservableTest {
 
     @Test
     public void insertingItemAndListContainsItemThenList() {
-        MergeObservableList<String> list = new MergeObservableList<>();
+        MergeObservableList.Source<String> source = new MergeObservableList.Source<>();
+        ObservableList<String> list = source.list();
         ObservableList.OnListChangedCallback callback = mock(ObservableList.OnListChangedCallback.class);
         list.addOnListChangedCallback(callback);
-        list.insertItem("test1");
+        source.insertItem("test1");
         ObservableList<String> items = new ObservableArrayList<>();
         items.add("test2");
         items.add("test3");
-        list.insertList(items);
+        source.insertList(items);
 
         assertThat(list)
                 .hasSize(3)
@@ -79,14 +82,15 @@ public class MergeObservableTest {
 
     @Test
     public void addingItemToBackingListAddsItemToList() {
-        MergeObservableList<String> list = new MergeObservableList<>();
+        MergeObservableList.Source<String> source = new MergeObservableList.Source<>();
+        ObservableList<String> list = source.list();
         ObservableList.OnListChangedCallback callback = mock(ObservableList.OnListChangedCallback.class);
         list.addOnListChangedCallback(callback);
-        list.insertItem("test1");
+        source.insertItem("test1");
         ObservableList<String> items = new ObservableArrayList<>();
         items.add("test2");
-        list.insertList(items);
-        list.insertItem("test4");
+        source.insertList(items);
+        source.insertItem("test4");
         items.add("test3");
 
         assertThat(list)
@@ -99,14 +103,15 @@ public class MergeObservableTest {
 
     @Test
     public void removingItemFromBackingListRemovesItemFromList() {
-        MergeObservableList<String> list = new MergeObservableList<>();
+        MergeObservableList.Source<String> source = new MergeObservableList.Source<>();
+        ObservableList<String> list = source.list();
         ObservableList.OnListChangedCallback callback = mock(ObservableList.OnListChangedCallback.class);
         list.addOnListChangedCallback(callback);
-        list.insertItem("test1");
+        source.insertItem("test1");
         ObservableList<String> items = new ObservableArrayList<>();
         items.add("test2");
-        list.insertList(items);
-        list.insertItem("test3");
+        source.insertList(items);
+        source.insertItem("test3");
         items.clear();
 
         assertThat(list)
@@ -120,13 +125,14 @@ public class MergeObservableTest {
     
     @Test
     public void changingItemFromBackingListChangesItInList() {
-        MergeObservableList<String> list = new MergeObservableList<>();
+        MergeObservableList.Source<String> source = new MergeObservableList.Source<>();
+        ObservableList<String> list = source.list();
         ObservableList.OnListChangedCallback callback = mock(ObservableList.OnListChangedCallback.class);
         list.addOnListChangedCallback(callback);
-        list.insertItem("test1");
+        source.insertItem("test1");
         ObservableList<String> items = new ObservableArrayList<>();
         items.add("test2");
-        list.insertList(items);
+        source.insertList(items);
         items.set(0, "test3");
         
         assertThat(list)
@@ -139,11 +145,12 @@ public class MergeObservableTest {
 
     @Test
     public void removingItemRemovesItFromTheList() {
-        MergeObservableList<String> list = new MergeObservableList<>();
-        list.insertItem("test1");
+        MergeObservableList.Source<String> source = new MergeObservableList.Source<>();
+        ObservableList<String> list = source.list();
+        source.insertItem("test1");
         ObservableList.OnListChangedCallback callback = mock(ObservableList.OnListChangedCallback.class);
         list.addOnListChangedCallback(callback);
-        list.removeItem("test1");
+        source.removeItem("test1");
 
         assertThat(list).isEmpty();
         verify(callback).onItemRangeRemoved(list, 0, 1);
@@ -151,13 +158,14 @@ public class MergeObservableTest {
 
     @Test
     public void removingListRemovesItFromTheList() {
-        MergeObservableList<String> list = new MergeObservableList<>();
+        MergeObservableList.Source<String> source = new MergeObservableList.Source<>();
+        ObservableList<String> list = source.list();
         ObservableList<String> backingList = new ObservableArrayList<>();
         backingList.addAll(Arrays.asList("test1", "test2"));
-        list.insertList(backingList);
+        source.insertList(backingList);
         ObservableList.OnListChangedCallback callback = mock(ObservableList.OnListChangedCallback.class);
         list.addOnListChangedCallback(callback);
-        list.removeList(backingList);
+        source.removeList(backingList);
 
         assertThat(list).isEmpty();
         verify(callback).onItemRangeRemoved(list, 0, 2);
@@ -165,11 +173,12 @@ public class MergeObservableTest {
 
     @Test
     public void removingAllRemovesInsertedItemFromTheList() {
-        MergeObservableList<String> list = new MergeObservableList<>();
-        list.insertItem("test1");
+        MergeObservableList.Source<String> source = new MergeObservableList.Source<>();
+        ObservableList<String> list = source.list();
+        source.insertItem("test1");
         ObservableList.OnListChangedCallback callback = mock(ObservableList.OnListChangedCallback.class);
         list.addOnListChangedCallback(callback);
-        list.removeAll();
+        source.removeAll();
 
         assertThat(list).isEmpty();
         verify(callback).onItemRangeRemoved(list, 0, 1);
@@ -177,13 +186,14 @@ public class MergeObservableTest {
 
     @Test
     public void removingAllRemovesInsertedListFromTheList() {
-        MergeObservableList<String> list = new MergeObservableList<>();
+        MergeObservableList.Source<String> source = new MergeObservableList.Source<>();
+        ObservableList<String> list = source.list();
         ObservableList<String> backingList = new ObservableArrayList<>();
         backingList.addAll(Arrays.asList("test1", "test2"));
-        list.insertList(backingList);
+        source.insertList(backingList);
         ObservableList.OnListChangedCallback callback = mock(ObservableList.OnListChangedCallback.class);
         list.addOnListChangedCallback(callback);
-        list.removeAll();
+        source.removeAll();
 
         assertThat(list).isEmpty();
         verify(callback).onItemRangeRemoved(list, 0, 2);
