@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
-apply plugin: 'com.jfrog.bintray'
-apply plugin: 'signing'
+group='com.github.roadhouse-dev'
+project.archivesBaseName="bindingcollectionadapter"
 
 android {
     compileSdkVersion 25
@@ -48,5 +48,4 @@ dependencies {
     androidTestCompile 'com.squareup.assertj:assertj-android:1.1.0'
 }
 
-apply from: '../publish.gradle'
 

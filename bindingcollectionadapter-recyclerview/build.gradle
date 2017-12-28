@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
-apply plugin: 'com.jfrog.bintray'
-apply plugin: 'signing'
+group='com.github.roadhouse-dev'
+project.archivesBaseName="bindingcollectionadapter-recyclerview"
 
 android {
     compileSdkVersion 25
@@ -50,4 +50,3 @@ dependencies {
     androidTestCompile 'com.android.support:support-v4:24.2.0'
 }
 
-apply from: '../publish.gradle'
