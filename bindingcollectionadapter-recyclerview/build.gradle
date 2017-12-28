@@ -5,10 +5,10 @@ project.archivesBaseName="bindingcollectionadapter-recyclerview"
 
 android {
     compileSdkVersion 25
-    buildToolsVersion '25.0.2'
+    buildToolsVersion '27.0.1'
 
     defaultConfig {
-        minSdkVersion 10
+        minSdkVersion 14
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
